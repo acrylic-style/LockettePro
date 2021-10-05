@@ -1,0 +1,65 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: acrylic-style <me@acrylicstyle.xyz>
+Date: Tue, 5 Oct 2021 23:08:30 +0900
+Subject: [PATCH] Fix bypassing other protection plugins
+
+
+diff --git a/src/main/java/me/crafter/mc/lockettepro/BlockPlayerListener.java b/src/main/java/me/crafter/mc/lockettepro/BlockPlayerListener.java
+index 0bceeea9c1ba6971a2ba40103c1588e31200bd3d..bbde175eb300c5d3f1d439c2021e05d2ff22aba6 100644
+--- a/src/main/java/me/crafter/mc/lockettepro/BlockPlayerListener.java
++++ b/src/main/java/me/crafter/mc/lockettepro/BlockPlayerListener.java
+@@ -64,6 +64,10 @@ public class BlockPlayerListener implements Listener {
+                     event.setCancelled(true);
+                     // Check lock info info
+                     if (!locked && !LocketteProAPI.isUpDownLockedDoor(block)) {
++                        if (!Utils.checkCanPlaceAt(block, blockface, player, player.getInventory().getItemInMainHand(), event.getHand())) {
++                            Utils.sendMessages(player, Config.getLang("cannot-lock-quick"));
++                            return;
++                        }
+                         // Get type
+                         Material signType = player.getInventory().getItemInMainHand().getType();
+                         // Not locked, not a locked door nearby
+@@ -84,12 +88,20 @@ public class BlockPlayerListener implements Listener {
+                         }
+                         Dependency.logPlacement(player, newsign);
+                     } else if (!locked && LocketteProAPI.isOwnerUpDownLockedDoor(block, player)) {
++                        if (!Utils.checkCanPlaceAt(block, blockface, player, player.getInventory().getItemInMainHand(), event.getHand())) {
++                            Utils.sendMessages(player, Config.getLang("cannot-lock-quick"));
++                            return;
++                        }
+                         // Not locked, (is locked door nearby), is owner of locked door nearby
+                         Utils.removeASign(player);
+                         Utils.sendMessages(player, Config.getLang("additional-sign-added-quick"));
+                         Utils.putSignOn(block, blockface, Config.getDefaultAdditionalString(), "", player.getInventory().getItemInMainHand().getType());
+                         Dependency.logPlacement(player, block.getRelative(blockface));
+                     } else if (LocketteProAPI.isOwner(block, player)) {
++                        if (!Utils.checkCanPlaceAt(block, blockface, player, player.getInventory().getItemInMainHand(), event.getHand())) {
++                            Utils.sendMessages(player, Config.getLang("cannot-lock-quick"));
++                            return;
++                        }
+                         // Locked, (not locked door nearby), is owner of locked block
+                         Utils.removeASign(player);
+                         Utils.putSignOn(block, blockface, Config.getDefaultAdditionalString(), "", player.getInventory().getItemInMainHand().getType());
+diff --git a/src/main/java/me/crafter/mc/lockettepro/Utils.java b/src/main/java/me/crafter/mc/lockettepro/Utils.java
+index 85c4831904e498c484a1e49d8bd35035fd4d6309..4fe7610989971625d11f0f88db48e02a190500bb 100644
+--- a/src/main/java/me/crafter/mc/lockettepro/Utils.java
++++ b/src/main/java/me/crafter/mc/lockettepro/Utils.java
+@@ -15,6 +15,8 @@ import org.bukkit.block.data.BlockData;
+ import org.bukkit.block.data.Directional;
+ import org.bukkit.command.CommandSender;
+ import org.bukkit.entity.Player;
++import org.bukkit.event.block.BlockPlaceEvent;
++import org.bukkit.inventory.EquipmentSlot;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.metadata.FixedMetadataValue;
+ import org.bukkit.metadata.MetadataValue;
+@@ -332,4 +334,9 @@ public class Utils {
+         }
+     }
+ 
++    public static boolean checkCanPlaceAt(Block block, BlockFace blockFace, Player player, ItemStack itemInHand, EquipmentSlot slot) {
++        BlockPlaceEvent event = new BlockPlaceEvent(block.getRelative(blockFace), block.getRelative(blockFace).getState(), block, itemInHand, player, true, slot);
++        Bukkit.getPluginManager().callEvent(event);
++        return !event.canBuild() && !event.isCancelled();
++    }
+ }

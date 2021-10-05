@@ -2,7 +2,7 @@
 export target="$1"
 export branch="$2"
 declare -A GH_URL
-GH_URL[someProject]='https://github.com/foo/bar'
+GH_URL[LockettePro]='https://github.com/NyaaCat/LockettePro'
 if [ ! -e "work/$target" ]; then
   mkdir -p "work"
   git clone "${GH_URL[$target]}" "work/$target"

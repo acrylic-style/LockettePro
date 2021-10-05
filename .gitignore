@@ -1,3 +1,6 @@
 work/
 
 # add "target"s here
+LockettePro/
+.idea/
+*.iml
