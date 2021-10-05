@@ -43,9 +43,20 @@ case "$1" in
     scripts/applyPatches.sh "$target" "$branch" || exit 1
   )
   ;;
+  "b" | "build")
+  (
+    set -e
+    cd "$basedir"
+    scripts/init.sh "$target" "$branch" || exit 1
+    scripts/applyPatches.sh "$target" "$branch" || exit 1
+    cd "$basedir/LockettePro" || exit 1
+    ./gradlew build
+  )
+  ;;
   *)
     echo " Commands:"
     echo "  * rb, rebuild            | Rebuild patches."
     echo "  * p, patch               | Apply all patches to the project without building it."
+    echo "  * b, build               | Apply all patches to the project and builds the project. (You need JDK 16)"
   ;;
 esac
