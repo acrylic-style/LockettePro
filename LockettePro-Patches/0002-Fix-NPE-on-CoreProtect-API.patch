@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: acrylic-style <me@acrylicstyle.xyz>
+Date: Thu, 7 Oct 2021 21:52:21 +0900
+Subject: [PATCH] Fix NPE on CoreProtect API
+
+
+diff --git a/src/main/java/me/crafter/mc/lockettepro/Dependency.java b/src/main/java/me/crafter/mc/lockettepro/Dependency.java
+index 67f4ab42360c5c505ee7611a8370c58e522a1042..04a3200eaf89df64ce1052a72da3ae3e0a8ddcd8 100644
+--- a/src/main/java/me/crafter/mc/lockettepro/Dependency.java
++++ b/src/main/java/me/crafter/mc/lockettepro/Dependency.java
+@@ -35,10 +35,15 @@ public class Dependency {
+         }
+ 
+         if (Config.coreprotect && Bukkit.getPluginManager().getPlugin("CoreProtect") != null && CoreProtect.getInstance().getAPI().APIVersion() == 6) {
+-            coreProtectAPI = CoreProtect.getInstance().getAPI();
+-            if (!coreProtectAPI.isEnabled()) {
+-                coreProtectAPI = null;
++            CoreProtect cp = CoreProtect.getInstance();
++            if (cp == null) {
+                 plugin.getLogger().warning("CoreProtect API is not enabled!");
++            } else {
++                coreProtectAPI = cp.getAPI();
++                if (!coreProtectAPI.isEnabled()) {
++                    coreProtectAPI = null;
++                    plugin.getLogger().warning("CoreProtect API is not enabled!");
++                }
+             }
+         }
+     }
